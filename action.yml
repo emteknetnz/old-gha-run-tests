@@ -22,11 +22,11 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Run PHPUnit tests
+    - name: Run PHPUnit
       if: ${{ inputs.phpunit }}
       shell: bash
       run: |
-        echo "Running PHPUnit tests"
+        echo "Running PHPUnit"
         if [ "${{ inputs.phpunit_suite }}" == "all" ]; then
           vendor/bin/phpunit --verbose --colors=always
         else
@@ -38,7 +38,7 @@ runs:
       shell: bash
       # TODO: move inline files to normal files
       run: |
-        echo "Running end-to-end tests"
+        echo "Running behat"
         if [ ! -f behat.yml ]; then echo "behat.yml missing" && exit 1; fi
         # this script will update behat.yml to work with headless chrome
         cat << EOF > __behat_headless.yml
@@ -115,24 +115,29 @@ runs:
           cd ../../..
         fi
         yarn run build
+        echo "Running git diff"
         git diff-files --quiet -w --relative=client
         git diff --name-status --relative=client
+        echo "Running yarn test"
         yarn run test
+        echo "Running yarn lint"
         yarn run lint
         echo "Passed"
     - name: "Run PHP linting"
       if: ${{ inputs.phplinting }}
       shell: bash
       run: |
-        # Run phpcs
+        echo "Running PHPCS"
         if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
         vendor/bin/phpcs
         # phpstan is optional
         if [ -f phpstan.neon.dist ]; then
+          echo "Running PHPStan"
           vendor/bin/phpstan analyse
         fi
         # cow validation is also done here due to it being a tiny piece of work not meriting its own step
         if [ -f .cow.json ]; then
+          echo "Running cow schema validate"
           vendor/bin/cow schema:validate
         fi
         echo "Passed"
@@ -140,6 +145,7 @@ runs:
       if: ${{ inputs.phpcoverage }}
       shell: bash
       run: |
+        echo "Running codecov"
         curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
         curl -Os https://uploader.codecov.io/latest/codecov-linux
         curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM
