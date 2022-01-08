@@ -22,28 +22,26 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Test step
+    - name: Run PHPUnit tests
+      if: ${{ inputs.phpunit }}
       shell: bash
       run: |
-        echo "Does this show as a seperate step?"
-    - name: Run tests
+        echo "Running PHPUnit tests"
+        if [ "${{ inputs.phpunit_suite }}" == "all" ]; then
+          vendor/bin/phpunit --verbose --colors=always
+        else
+          vendor/bin/phpunit --verbose --colors=always --testsuite ${{ inputs.phpunit_suite }}
+        fi
+        echo "Passed"
+    - name: Run end-to-end tests
+      if: ${{ inputs.endtoend }}
       shell: bash
+      # TODO: move inline files to normal files
       run: |
-        # Run the tests for the matrix entry
-
-        if [ ${{ inputs.phpunit }} ]; then
-          if [ "${{ inputs.phpunit_suite }}" == "all" ]; then
-            vendor/bin/phpunit --verbose --colors=always
-          else
-            vendor/bin/phpunit --verbose --colors=always --testsuite ${{ inputs.phpunit_suite }}
-          fi
-          echo "Passed"
-
-        elif [ ${{ inputs.endtoend }} ]; then
-          # Run behat tests
-          if [ ! -f behat.yml ]; then echo "behat.yml missing" && exit 1; fi
-          # this script will update behat.yml to work with headless chrome
-          cat << EOF > __behat_headless.yml
+        echo "Running end-to-end tests"
+        if [ ! -f behat.yml ]; then echo "behat.yml missing" && exit 1; fi
+        # this script will update behat.yml to work with headless chrome
+        cat << EOF > __behat_headless.yml
         default:
           suites: []
           extensions:
@@ -91,59 +89,64 @@ runs:
           nohup sh -c "chromedriver" > /dev/null 2>&1 &
           vendor/bin/behat --colors --strict
           echo "Passed"
-
-        elif [ ${{ inputs.js }} ]; then
-          # Run yarn test etc
-          if [ ! -f package.json ]; then echo "package.json missing" && exit 1; fi
-          wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh
-          php -r "if (hash_file('sha384', 'install.sh') === 'dd4b116a7452fc3bb8c0e410ceac27e19b0ba0f900fe2f91818a95c12e92130fdfb8170fec170b9fb006d316f6386f2b') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('install.sh'); } echo PHP_EOL;"
-          if [ ! -f install.sh ]; then echo "Cannot install nvm" && exit 1; fi
-          . install.sh
-          rm install.sh
-          export NVM_DIR="$HOME/.nvm"
-          # this loads nvm into the current terminal
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          if [ ! -f .nvmrc ]; then echo "Missing .nvmrc" && exit 1; fi
-          nvm install
-          nvm use
-          rm -rf client/dist
-          npm install -g yarn
+    - name: Run JS tests
+      if: ${{ inputs.js }}
+      shell: bash
+      run: |
+        echo "Running JS tests"
+        if [ ! -f package.json ]; then echo "package.json missing" && exit 1; fi
+        wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh
+        php -r "if (hash_file('sha384', 'install.sh') === 'dd4b116a7452fc3bb8c0e410ceac27e19b0ba0f900fe2f91818a95c12e92130fdfb8170fec170b9fb006d316f6386f2b') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('install.sh'); } echo PHP_EOL;"
+        if [ ! -f install.sh ]; then echo "Cannot install nvm" && exit 1; fi
+        . install.sh
+        rm install.sh
+        export NVM_DIR="$HOME/.nvm"
+        # this loads nvm into the current terminal
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        if [ ! -f .nvmrc ]; then echo "Missing .nvmrc" && exit 1; fi
+        nvm install
+        nvm use
+        rm -rf client/dist
+        npm install -g yarn
+        yarn install --network-concurrency 1
+        if [ -d vendor/silverstripe/admin ]; then
+          cd vendor/silverstripe/admin
           yarn install --network-concurrency 1
-          if [ -d vendor/silverstripe/admin ]; then
-            cd vendor/silverstripe/admin
-            yarn install --network-concurrency 1
-            cd ../../..
-          fi
-          yarn run build
-          git diff-files --quiet -w --relative=client
-          git diff --name-status --relative=client
-          yarn run test
-          yarn run lint
-          echo "Passed"
-
-        elif [ ${{ inputs.phplinting }} ]; then
-          # Run phpcs
-          if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
-          vendor/bin/phpcs
-          # phpstan is optional
-          if [ -f phpstan.neon.dist ]; then
-            vendor/bin/phpstan analyse
-          fi
-          # cow validation is also done here due to it being a tiny piece of work not meriting its own step
-          if [ -f .cow.json ]; then
-            vendor/bin/cow schema:validate
-          fi
-          echo "Passed"
-
-        elif [ ${{ inputs.phpcoverage }} ]; then
-          curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
-          curl -Os https://uploader.codecov.io/latest/codecov-linux
-          curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM
-          curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM.sig
-          gpg --verify codecov-linux.SHA256SUM.sig codecov-linux.SHA256SUM
-          shasum -a 256 -c codecov-linux.SHA256SUM
-          chmod +x codecov-linux
-          phpdbg -qrr vendor/bin/phpunit --coverage-clover=coverage.xml
-          ./codecov-linux -f coverage.xml;
-          echo "coverage.xml generated and uploaded to codecov"
+          cd ../../..
         fi
+        yarn run build
+        git diff-files --quiet -w --relative=client
+        git diff --name-status --relative=client
+        yarn run test
+        yarn run lint
+        echo "Passed"
+    - name: "Run PHP linting"
+      if: ${{ inputs.phplinting }}
+      shell: bash
+      run: |
+        # Run phpcs
+        if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
+        vendor/bin/phpcs
+        # phpstan is optional
+        if [ -f phpstan.neon.dist ]; then
+          vendor/bin/phpstan analyse
+        fi
+        # cow validation is also done here due to it being a tiny piece of work not meriting its own step
+        if [ -f .cow.json ]; then
+          vendor/bin/cow schema:validate
+        fi
+        echo "Passed"
+    - name: "Run PHP coverage"
+      if: ${{ inputs.phpcoverage }}
+      shell: bash
+      run: |
+        curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
+        curl -Os https://uploader.codecov.io/latest/codecov-linux
+        curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM
+        curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM.sig
+        gpg --verify codecov-linux.SHA256SUM.sig codecov-linux.SHA256SUM
+        shasum -a 256 -c codecov-linux.SHA256SUM
+        chmod +x codecov-linux
+        phpdbg -qrr vendor/bin/phpunit --coverage-clover=coverage.xml
+        ./codecov-linux -f coverage.xml;
+        echo "coverage.xml generated and uploaded to codecov"
