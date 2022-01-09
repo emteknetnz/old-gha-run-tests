@@ -2,7 +2,7 @@
 // this script will update the modules behat.yml to work with headless chrome
 // uses behat_headless.yml as the main behat.yml file,
 // and adds in the 'suites' from the module behat.yml
-$a = trim(file_get_contents('behat_headless.yml'));
+$a = trim(file_get_contents('__behat_headless.yml'));
 $b = file_get_contents('behat.yml');
 preg_match("#(?s)  suites:(.+?)\n  [a-z]#", $b, $m);
 if (!$m) {
