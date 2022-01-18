@@ -4,6 +4,9 @@ inputs:
   endtoend:
     type: boolean
     default: false
+  endtoend_suite:
+    type: string
+    default: ''
   phpcoverage:
     type: boolean
     default: false
@@ -21,7 +24,15 @@ inputs:
     default: false
 runs:
   using: composite
+  env:
+    PHPUNIT_SUITE: ${{ inputs.phpunit_suite }}
+    ENDTOEND_SUITE: ${{ inputs.endtoend_suite }}
   steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if ! [[ "$PHPUNIT_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then exit 1; fi
+        if ! [[ "$ENDTOEND_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then exit 1; fi
     - name: Run PHPUnit
       if: ${{ inputs.phpunit }}
       shell: bash
@@ -47,7 +58,11 @@ runs:
         rm __behat.php
         rm __behat_headless.yml
         nohup sh -c "chromedriver" > /dev/null 2>&1 &
-        vendor/bin/behat --colors --strict
+        if [ "$ENDTOEND_SUITE" ]; then
+          vendor/bin/behat --colors --strict "$ENDTOEND_SUITE"
+        else
+          vendor/bin/behat --colors --strict
+        fi
         echo "Passed"
     - name: Run JS tests
       if: ${{ inputs.js }}
