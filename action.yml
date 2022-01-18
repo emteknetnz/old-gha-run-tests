@@ -4,8 +4,8 @@ inputs:
   endtoend:
     type: boolean
     default: false
-  # if endtoend_suite is blank it will run suites defined in root behat.yml
-  # this is only required for extra_jobs running non-root suites e.g. running asset-admin behat from silverstripe-installer
+  # if endtoend_suite is blank or "root" it will run suites defined in root behat.yml
+  # passing this input is intended for extra_jobs running non-root suites e.g. running "asset-admin" behat from silverstripe-installer
   endtoend_suite:
     type: string
     default: ''
@@ -64,7 +64,7 @@ runs:
         rm __behat.php
         rm __behat_headless.yml
         nohup sh -c "chromedriver" > /dev/null 2>&1 &
-        if [ "$ENDTOEND_SUITE" ]; then
+        if [ "$ENDTOEND_SUITE" ] && [ "$ENDTOEND_SUITE" != "root" ]; then
           vendor/bin/behat --colors --strict "$ENDTOEND_SUITE"
         else
           vendor/bin/behat --colors --strict
