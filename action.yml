@@ -24,18 +24,20 @@ inputs:
     default: false
 runs:
   using: composite
-  env:
-    PHPUNIT_SUITE: ${{ inputs.phpunit_suite }}
-    ENDTOEND_SUITE: ${{ inputs.endtoend_suite }}
   steps:
     - name: Validate inputs
       shell: bash
+      env:
+        PHPUNIT_SUITE: ${{ inputs.phpunit_suite }}
+        ENDTOEND_SUITE: ${{ inputs.endtoend_suite }}
       run: |
         if ! [[ "$PHPUNIT_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then exit 1; fi
         if ! [[ "$ENDTOEND_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then exit 1; fi
     - name: Run PHPUnit
       if: ${{ inputs.phpunit }}
       shell: bash
+      env:
+        PHPUNIT_SUITE: ${{ inputs.phpunit_suite }}
       run: |
         echo "Running PHPUnit"
         if [ "$PHPUNIT_SUITE" == "all" ]; then
@@ -47,6 +49,8 @@ runs:
     - name: Run end-to-end tests
       if: ${{ inputs.endtoend }}
       shell: bash
+      env:
+        ENDTOEND_SUITE: ${{ inputs.endtoend_suite }}
       run: |
         echo "Running behat"
         if [ ! -f behat.yml ]; then echo "behat.yml missing" && exit 1; fi
