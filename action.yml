@@ -38,10 +38,10 @@ runs:
       shell: bash
       run: |
         echo "Running PHPUnit"
-        if [ "${{ inputs.phpunit_suite }}" == "all" ]; then
+        if [ "$PHPUNIT_SUITE" == "all" ]; then
           vendor/bin/phpunit --verbose --colors=always
         else
-          vendor/bin/phpunit --verbose --colors=always --testsuite ${{ inputs.phpunit_suite }}
+          vendor/bin/phpunit --verbose --colors=always --testsuite "$PHPUNIT_SUITE"
         fi
         echo "Passed"
     - name: Run end-to-end tests
