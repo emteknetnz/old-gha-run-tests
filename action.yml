@@ -35,12 +35,13 @@ runs:
       run: |
         if ! [[ "$PHPUNIT_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then exit 1; fi
         if ! [[ "$ENDTOEND_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then exit 1; fi
-    - name: Flush
+    - name: Clear silverstripe-cache
       shell: bash
       run: |
         # Sort issue where large numbers of classes are not found within unit tests
+        # Likely because the /tmp/silverstripe-cache-php7.4.xyz... dir being out of sync with TestOnly objects
         rm -rf $(find /tmp -maxdepth 1 | grep silverstripe-cache)
-        vendor/bin/sake dev/tasks flush=1 1> /dev/null
+        ls /tmp
     - name: Run PHPUnit
       if: ${{ inputs.phpunit }}
       shell: bash
