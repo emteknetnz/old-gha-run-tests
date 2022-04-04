@@ -41,7 +41,6 @@ runs:
         # Sort issue where large numbers of classes are not found within unit tests
         # Likely because the /tmp/silverstripe-cache-php7.4.xyz... dir being out of sync with TestOnly objects
         rm -rf $(find /tmp -maxdepth 1 | grep silverstripe-cache)
-        ls /tmp
     - name: Run PHPUnit
       if: ${{ inputs.phpunit }}
       shell: bash
