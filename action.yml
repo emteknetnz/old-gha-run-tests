@@ -35,6 +35,12 @@ runs:
       run: |
         if ! [[ "$PHPUNIT_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then exit 1; fi
         if ! [[ "$ENDTOEND_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then exit 1; fi
+    - name: Flush
+      shell: bash
+      run: |
+        # Sort issue where large numbers of classes are not found within unit tests
+        rm -rf $(find /tmp -maxdepth 1 | grep silverstripe-cache)
+        vendor/bin/sake dev/tasks flush=1 1> /dev/null
     - name: Run PHPUnit
       if: ${{ inputs.phpunit }}
       shell: bash
@@ -43,9 +49,9 @@ runs:
       run: |
         echo "Running PHPUnit"
         if [ "$PHPUNIT_SUITE" == "all" ]; then
-          vendor/bin/phpunit --verbose --colors=always flush=1
+          vendor/bin/phpunit --verbose --colors=always
         else
-          vendor/bin/phpunit --verbose --colors=always --testsuite "$PHPUNIT_SUITE" flush=1
+          vendor/bin/phpunit --verbose --colors=always --testsuite "$PHPUNIT_SUITE"
         fi
         echo "Passed"
     - name: Run end-to-end tests
