@@ -43,9 +43,9 @@ runs:
       run: |
         echo "Running PHPUnit"
         if [ "$PHPUNIT_SUITE" == "all" ]; then
-          vendor/bin/phpunit --verbose --colors=always
+          vendor/bin/phpunit --verbose --colors=always flush=1
         else
-          vendor/bin/phpunit --verbose --colors=always --testsuite "$PHPUNIT_SUITE"
+          vendor/bin/phpunit --verbose --colors=always --testsuite "$PHPUNIT_SUITE" flush=1
         fi
         echo "Passed"
     - name: Run end-to-end tests
