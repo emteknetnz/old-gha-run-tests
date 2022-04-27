@@ -21,6 +21,9 @@ inputs:
   phpunit_suite:
     type: string
     default: ''
+  phpunit_fail_on_warning:
+    type: boolean
+    default: false
   js:
     type: boolean
     default: false
@@ -48,11 +51,13 @@ runs:
       env:
         PHPUNIT_SUITE: ${{ inputs.phpunit_suite }}
       run: |
-        echo "Running PHPUnit"
+        FAIL_ON_WARNING=
+        if [ "${{ inputs.phpunit_fail_on_warning }}" == "true" ]; then FAIL_ON_WARNING='--fail-on-warning'; fi
+        echo "Running PHPUnit with options: $FAIL_ON_WARNING"
         if [ "$PHPUNIT_SUITE" == "all" ]; then
-          vendor/bin/phpunit --verbose --colors=always
+          vendor/bin/phpunit --verbose --colors=always $FAIL_ON_WARNING
         else
-          vendor/bin/phpunit --verbose --colors=always --testsuite "$PHPUNIT_SUITE"
+          vendor/bin/phpunit --verbose --colors=always --testsuite "$PHPUNIT_SUITE" $FAIL_ON_WARNING
         fi
         echo "Passed"
     - name: Run end-to-end tests
