@@ -1,11 +1,13 @@
 name: Run tests
 description: Run tests for a single matrix entry
+
 inputs:
   endtoend:
     type: boolean
     default: false
   # if endtoend_suite is blank or "root" it will run suites defined in root behat.yml
-  # passing this input is intended for extra_jobs running non-root suites e.g. running "asset-admin" behat from silverstripe-installer
+  # passing this input is intended for extra_jobs running non-root suites
+  # e.g. running "asset-admin" behat from silverstripe-installer
   endtoend_suite:
     type: string
     default: ''
@@ -27,32 +29,38 @@ inputs:
   js:
     type: boolean
     default: false
+
 runs:
   using: composite
   steps:
+
     - name: Validate inputs
       shell: bash
       env:
         PHPUNIT_SUITE: ${{ inputs.phpunit_suite }}
         ENDTOEND_SUITE: ${{ inputs.endtoend_suite }}
       run: |
-        if ! [[ "$PHPUNIT_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then exit 1; fi
-        if ! [[ "$ENDTOEND_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then exit 1; fi
-    - name: Clear silverstripe-cache
-      shell: bash
-      run: |
-        # Sort issue where large numbers of classes are not found within unit tests
-        # Likely because the /tmp/silverstripe-cache-php7.4.xyz... dir being out of sync with TestOnly objects
-        rm -rf $(find /tmp -maxdepth 1 | grep silverstripe-cache)
+        if ! [[ "$PHPUNIT_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then
+          echo "Invalid input for phpunit_suite"
+          exit 1
+        fi
+        if ! [[ "$ENDTOEND_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then
+          echo "Invalid input for endtoend_suite"
+          exit 1
+        fi
+
     - name: Run PHPUnit
-      # input booleans are converted to strings - https://docs.github.com/en/actions/learn-github-actions/expressions#functions
+      # input booleans are converted to strings
+      # https://docs.github.com/en/actions/learn-github-actions/expressions#functions
       if: ${{ inputs.phpunit == 'true' }}
       shell: bash
       env:
         PHPUNIT_SUITE: ${{ inputs.phpunit_suite }}
       run: |
         FAIL_ON_WARNING=
-        if [ "${{ inputs.phpunit_fail_on_warning }}" == "true" ]; then FAIL_ON_WARNING='--fail-on-warning'; fi
+        if [ "${{ inputs.phpunit_fail_on_warning }}" == "true" ]; then
+          FAIL_ON_WARNING='--fail-on-warning'
+        fi
         echo "Running PHPUnit with options: $FAIL_ON_WARNING"
         if [ "$PHPUNIT_SUITE" == "all" ]; then
           vendor/bin/phpunit --verbose --colors=always $FAIL_ON_WARNING
@@ -60,6 +68,7 @@ runs:
           vendor/bin/phpunit --verbose --colors=always --testsuite "$PHPUNIT_SUITE" $FAIL_ON_WARNING
         fi
         echo "Passed"
+
     - name: Run end-to-end tests
       if: ${{ inputs.endtoend == 'true' }}
       shell: bash
@@ -67,9 +76,17 @@ runs:
         ENDTOEND_SUITE: ${{ inputs.endtoend_suite }}
       run: |
         echo "Running behat"
-        if [ ! -f behat.yml ]; then echo "behat.yml missing" && exit 1; fi
-        if [ -f __behat.php ]; then rm __behat.php; fi
-        if [ -f __behat_headless.yml ]; then rm __behat_headless.yml; fi
+        if [ ! -f behat.yml ]; then
+          echo "behat.yml missing"
+          exit 1
+        fi
+        # Remove any sneaky attempts to put __*.php files into pull-requests
+        if [ -f __behat.php ]; then
+          rm __behat.php
+        fi
+        if [ -f __behat_headless.yml ]; then
+          rm __behat_headless.yml
+        fi
         cp ${{ github.action_path }}/behat.php __behat.php
         cp ${{ github.action_path }}/behat_headless.yml __behat_headless.yml
         php __behat.php
@@ -82,21 +99,31 @@ runs:
           vendor/bin/behat --colors --strict
         fi
         echo "Passed"
+
     - name: Run JS tests
       if: ${{ inputs.js == 'true' }}
       shell: bash
       run: |
         echo "Running JS tests"
-        if [ ! -f package.json ]; then echo "package.json missing" && exit 1; fi
+        if [ ! -f package.json ]; then
+          echo "package.json missing"
+          exit 1
+        fi
         wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh
         php -r "if (hash_file('sha384', 'install.sh') === 'dd4b116a7452fc3bb8c0e410ceac27e19b0ba0f900fe2f91818a95c12e92130fdfb8170fec170b9fb006d316f6386f2b') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('install.sh'); } echo PHP_EOL;"
-        if [ ! -f install.sh ]; then echo "Cannot install nvm" && exit 1; fi
+        if [ ! -f install.sh ]; then
+          echo "Cannot install nvm"
+          exit 1
+        fi
         . install.sh
         rm install.sh
         export NVM_DIR="$HOME/.nvm"
         # this loads nvm into the current terminal
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-        if [ ! -f .nvmrc ]; then echo "Missing .nvmrc" && exit 1; fi
+        if [ ! -f .nvmrc ]; then
+          echo "Missing .nvmrc"
+          exit 1
+        fi
         nvm install
         nvm use
         rm -rf client/dist
@@ -116,12 +143,16 @@ runs:
         echo "Running yarn lint"
         yarn run lint
         echo "Passed"
+
     - name: "Run PHP linting"
       if: ${{ inputs.phplinting == 'true' }}
       shell: bash
       run: |
         echo "Running PHPCS"
-        if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
+        if [ ! -f phpcs.xml.dist ]; then
+          echo "Missing phpcs.xml.dist"
+          exit 1
+        fi
         vendor/bin/phpcs
         # phpstan is optional
         if [ -f phpstan.neon.dist ]; then
@@ -134,6 +165,7 @@ runs:
           vendor/bin/cow schema:validate
         fi
         echo "Passed"
+
     - name: "Run PHP coverage"
       if: ${{ inputs.phpcoverage == 'true' }}
       shell: bash
