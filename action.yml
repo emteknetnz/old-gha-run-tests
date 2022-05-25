@@ -80,6 +80,9 @@ runs:
           echo "behat.yml missing"
           exit 1
         fi
+        # display versions of chrome and chromedriver
+        google-chrome --version
+        chromedriver --version
         # Remove any sneaky attempts to put __*.php files into pull-requests
         if [ -f __behat.php ]; then
           rm __behat.php
@@ -92,6 +95,7 @@ runs:
         php __behat.php
         rm __behat.php
         rm __behat_headless.yml
+        # start chromedriver as a background process
         nohup sh -c "chromedriver" > /dev/null 2>&1 &
         if [ "$ENDTOEND_SUITE" ] && [ "$ENDTOEND_SUITE" != "root" ]; then
           vendor/bin/behat --colors --strict "$ENDTOEND_SUITE"
