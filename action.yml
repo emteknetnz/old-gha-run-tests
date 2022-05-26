@@ -73,7 +73,7 @@ runs:
       if: ${{ inputs.endtoend == 'true' }}
       shell: bash
       run: |
-        echo "Default versions of chrome and chromedriver"
+        echo "Default versions of google-chrome and chromedriver"
         GCVR=$(google-chrome --version)
         CDVR=$(chromedriver --version)
         echo "$GCVR"
@@ -86,9 +86,10 @@ runs:
         if [ "$GCV" != "CDV" ]; then
           echo "google-chrome and chromedriver versions do not match, reinstalling"
           sudo apt remove -y --purge google-chrome-stable || true
+          sudo apt update
           sudo apt install -y chromium-browser chromium-chromedriver
-          echo "Updated versions of chrome and chromedriver"
-          google-chrome --version
+          echo "Updated versions of chromium-browser and chromedriver"
+          chromium-browser --version
           chromedriver --version
         else
           echo "Default versions match, continuing"
