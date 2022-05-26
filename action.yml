@@ -91,7 +91,7 @@ runs:
           google-chrome --version
           chromedriver --version
         else
-          echo "Deafult versions match, continuing"
+          echo "Default versions match, continuing"
         fi
 
     - name: Run end-to-end tests
