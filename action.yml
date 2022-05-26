@@ -86,7 +86,6 @@ runs:
         if [ "$GCV" != "CDV" ]; then
           echo "google-chrome and chromedriver versions do not match, reinstalling"
           sudo apt remove -y --purge google-chrome-stable || true
-          sudo apt update
           sudo apt install -y chromium-browser chromium-chromedriver
           echo "Updated versions of chromium-browser and chromedriver"
           chromium-browser --version
@@ -106,9 +105,6 @@ runs:
           echo "behat.yml missing"
           exit 1
         fi
-        # display versions of chrome and chromedriver
-        google-chrome --version
-        chromedriver --version
         # Remove any sneaky attempts to put __*.php files into pull-requests
         if [ -f __behat.php ]; then
           rm __behat.php
