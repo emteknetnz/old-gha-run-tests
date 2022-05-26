@@ -10,9 +10,11 @@ inputs:
   # e.g. running "asset-admin" behat from silverstripe-installer
   endtoend_suite:
     type: string
+    required: false
     default: ''
   endtoend_config:
     type: string
+    required: false
     default: ''
   phpcoverage:
     type: boolean
@@ -25,6 +27,7 @@ inputs:
     default: false
   phpunit_suite:
     type: string
+    required: false
     default: ''
   phpunit_fail_on_warning:
     type: boolean
