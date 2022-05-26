@@ -43,9 +43,9 @@ runs:
     - name: Validate inputs
       shell: bash
       env:
-        PHPUNIT_SUITE: ${{ inputs.phpunit_suite }}
-        ENDTOEND_SUITE: ${{ inputs.endtoend_suite }}
-        ENDTOEND_CONFIG: ${{ inputs.endtoend_config }}
+        PHPUNIT_SUITE: "${{ inputs.phpunit_suite }}"
+        ENDTOEND_SUITE: "${{ inputs.endtoend_suite }}"
+        ENDTOEND_CONFIG: "${{ inputs.endtoend_config }}"
       run: |
         if ! [[ "$PHPUNIT_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then
           echo "Invalid input for phpunit_suite"
@@ -55,7 +55,7 @@ runs:
           echo "Invalid input for endtoend_suite"
           exit 1
         fi
-        if ! [[ "$ENDTOEND_CONFIG" =~ ^[a-zA-Z0-9_\-\.\/]*$ ]]; then
+        if ! [[ "$ENDTOEND_CONFIG" =~ ^[a-zA-Z0-9/_\-\.]*$ ]]; then
           echo "Invalid input for endtoend_config"
           exit 1
         fi
