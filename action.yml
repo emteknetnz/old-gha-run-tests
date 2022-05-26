@@ -79,9 +79,9 @@ runs:
         echo "$GCVR"
         echo "$CDVR"
         # Example version number is 101.0.4951.64
-        [[ "$GCVR" =~ ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\) ]]
+        [[ "$GCVR" =~ ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+) ]]
         GCV="${BASH_REMATCH[1]}"
-        [[ "$CDVR" =~ ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\) ]]
+        [[ "$CDVR" =~ ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+) ]]
         CDV="${BASH_REMATCH[1]}"
         if [ "$GCV" != "CDV" ]; then
           echo "google-chrome and chromedriver versions do not match, reinstalling"
