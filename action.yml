@@ -11,6 +11,9 @@ inputs:
   endtoend_suite:
     type: string
     default: ''
+  endtoend_config:
+    type: string
+    default: ''
   phpcoverage:
     type: boolean
     default: false
@@ -39,6 +42,7 @@ runs:
       env:
         PHPUNIT_SUITE: ${{ inputs.phpunit_suite }}
         ENDTOEND_SUITE: ${{ inputs.endtoend_suite }}
+        ENDTOEND_CONFIG: ${{ inputs.endtoend_config }}
       run: |
         if ! [[ "$PHPUNIT_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then
           echo "Invalid input for phpunit_suite"
@@ -46,6 +50,10 @@ runs:
         fi
         if ! [[ "$ENDTOEND_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then
           echo "Invalid input for endtoend_suite"
+          exit 1
+        fi
+        if ! [[ "$ENDTOEND_CONFIG" =~ ^[a-zA-Z0-9_\-\.\/]*$ ]]; then
+          echo "Invalid input for endtoend_config"
           exit 1
         fi
 
@@ -100,6 +108,7 @@ runs:
       shell: bash
       env:
         ENDTOEND_SUITE: ${{ inputs.endtoend_suite }}
+        ENDTOEND_CONFIG: ${{ inputs.endtoend_config }}
       run: |
         echo "Running behat"
         if [ ! -f behat.yml ]; then
@@ -120,10 +129,18 @@ runs:
         rm __behat_headless.yml
         # start chromedriver as a background process
         nohup sh -c "chromedriver" > /dev/null 2>&1 &
-        if [ "$ENDTOEND_SUITE" ] && [ "$ENDTOEND_SUITE" != "root" ]; then
-          vendor/bin/behat --colors --strict "$ENDTOEND_SUITE"
+        if [ "$ENDTOEND_SUITE" != "root" ]; then
+          if [ "$ENDTOEND_CONFIG" != "" ]; then
+            vendor/bin/behat --colors --strict --config "$ENDTOEND_CONFIG" "$ENDTOEND_SUITE"
+          else
+            vendor/bin/behat --colors --strict "$ENDTOEND_SUITE"
+          fi
         else
-          vendor/bin/behat --colors --strict
+          if [ "$ENDTOEND_CONFIG" != "" ]; then
+            vendor/bin/behat --colors --strict --config "$ENDTOEND_CONFIG"
+          else
+            vendor/bin/behat --colors --strict
+          fi
         fi
         echo "Passed"
 
