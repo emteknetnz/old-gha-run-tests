@@ -47,16 +47,15 @@ runs:
         ENDTOEND_SUITE: ${{ inputs.endtoend_suite }}
         ENDTOEND_CONFIG: ${{ inputs.endtoend_config }}
       run: |
-        # Need empty string checks because regex's strangely do not match on empty string
-        if [ "$PHPUNIT_SUITE" != "" ] && ! [[ "$PHPUNIT_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then
+        if ! [[ "$PHPUNIT_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then
           echo "Invalid input for phpunit_suite"
           exit 1
         fi
-        if [ "$ENDTOEND_SUITE" != "" ] && ! [[ "$ENDTOEND_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then
+        if ! [[ "$ENDTOEND_SUITE" =~ ^[a-zA-Z0-9_\-]*$ ]]; then
           echo "Invalid input for endtoend_suite"
           exit 1
         fi
-        if [ "$ENDTOEND_CONFIG" != "" ] && ! [[ "$ENDTOEND_CONFIG" =~ ^[a-zA-Z0-9/_\-\.]*$ ]]; then
+        if ! [[ "$ENDTOEND_CONFIG" =~ ^[a-zA-Z0-9_\./\-]*$ ]]; then
           echo "Invalid input for endtoend_config"
           exit 1
         fi
