@@ -76,9 +76,9 @@ runs:
         echo "Default versions of chrome and chromedriver"
         GCVR=$(google-chrome --version)
         CDVR=$(chromedriver --version)
-        echo $GCVR
-        echo $CDVR
-        // Example version number is 101.0.4951.64
+        echo "$GCVR"
+        echo "$CDVR"
+        # Example version number is 101.0.4951.64
         [[ "$GCVR" =~ ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\) ]]
         GCV="${BASH_REMATCH[1]}"
         [[ "$CDVR" =~ ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\) ]]
