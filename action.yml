@@ -89,21 +89,19 @@ runs:
         CDVR=$(chromedriver --version)
         echo "$GCVR"
         echo "$CDVR"
-        # Note that on ubuntu 20.04 and later, these will be installed via a snap and there seems to
-        # be permission error with using snap on github actions
-        # mkdir: cannot create directory '/run/user/1001': Permission denied
         # Example version number is 101.0.4951.64
         [[ "$GCVR" =~ ([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+ ]]
         GCV="${BASH_REMATCH[1]}"
         [[ "$CDVR" =~ ([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+ ]]
         CDV="${BASH_REMATCH[1]}"
         # Reinstall if a.b.c versions do not match, though allow a different .d version
-        # if [ "$GCV" != "$CDV" ]; then
-        # TODO UNCOMENT LINE ABOVE AND REMOVE LINE BELOW
-        if [ "1" == "1" ]; then
+        if [ "$GCV" != "$CDV" ]; then
           WGC=$(which google-chrome)
           echo "google-chrome and chromedriver versions do not match, reinstalling"
           sudo apt remove -y --purge google-chrome-stable || true
+          # Note that on ubuntu 20.04 and later, these will be installed via a snap and there seems
+          # too be a permission error with using snap on github actions, but it does not seem to matter
+          # mkdir: cannot create directory '/run/user/1001': Permission denied
           sudo apt install -y chromium-browser chromium-chromedriver
           echo "Updated versions of chromium-browser and chromedriver"
           sudo ln -s $(which chromium-browser) "$WGC"
@@ -121,17 +119,25 @@ runs:
         ENDTOEND_CONFIG: ${{ inputs.endtoend_config }}
       run: |
         echo "Running behat"
-        if [ ! -f behat.yml ]; then
-          echo "behat.yml missing"
+        BEHAT_CONFIG="behat.yml"
+        if [ "$ENDTOEND_CONFIG" != "" ]; then
+          BEHAT_CONFIG="$ENDTOEND_CONFIG"
+        fi
+        if [ ! -f "$BEHAT_CONFIG" ]; then
+          echo "behat.yml config missing"
           exit 1
         fi
-        # Remove any sneaky attempts to put __*.php files into pull-requests
+        # Remove any sneaky attempts to put __* files into pull-requests
+        if [ -f __behat.yml ]; then
+          rm __behat.yml
+        fi
         if [ -f __behat.php ]; then
           rm __behat.php
         fi
         if [ -f __behat_headless.yml ]; then
           rm __behat_headless.yml
         fi
+        cp "$BEHAT_CONFIG" __behat.yml
         cp ${{ github.action_path }}/behat.php __behat.php
         cp ${{ github.action_path }}/behat_headless.yml __behat_headless.yml
         php __behat.php
@@ -140,17 +146,9 @@ runs:
         # start chromedriver as a background process
         nohup sh -c "chromedriver" > /dev/null 2>&1 &
         if [ "$ENDTOEND_SUITE" != "root" ]; then
-          if [ "$ENDTOEND_CONFIG" != "" ]; then
-            vendor/bin/behat --colors --strict --config "$ENDTOEND_CONFIG" "$ENDTOEND_SUITE"
-          else
-            vendor/bin/behat --colors --strict "$ENDTOEND_SUITE"
-          fi
+          vendor/bin/behat --colors --strict --config __behat.yml "$ENDTOEND_SUITE"
         else
-          if [ "$ENDTOEND_CONFIG" != "" ]; then
-            vendor/bin/behat --colors --strict --config "$ENDTOEND_CONFIG"
-          else
-            vendor/bin/behat --colors --strict
-          fi
+          vendor/bin/behat --colors --strict --config __behat.yml
         fi
         echo "Passed"
 

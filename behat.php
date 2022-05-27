@@ -3,7 +3,7 @@
 // uses behat_headless.yml as the main behat.yml file,
 // and adds in the 'suites' from the module behat.yml
 $a = trim(file_get_contents('__behat_headless.yml'));
-$b = file_get_contents('behat.yml');
+$b = file_get_contents('__behat.yml');
 preg_match("#(?s)  suites:(.+?)\n  [a-z]#", $b, $m);
 if (!$m) {
     preg_match("#(?s)  suites: (.+?)$#", $b, $m);
@@ -13,4 +13,4 @@ if (!$m) {
     die;
 }
 $c = str_replace('suites: []', 'suites: ' . $m[1], $a);
-file_put_contents('behat.yml', $c);
+file_put_contents('__behat.yml', $c);
