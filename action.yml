@@ -97,7 +97,7 @@ runs:
         # Reinstall if a.b.c versions do not match, though allow a different .d version
         # if [ "$GCV" != "$CDV" ]; then
         # TODO REMOVE FOLLOW LINE AND UNCOMMENT LINE ABOVE
-        if [ "1" == "1"]; then
+        if [ "1" == "1" ]; then
           WGC=$(which google-chrome)
           echo "google-chrome and chromedriver versions do not match, reinstalling"
           sudo apt remove -y --purge google-chrome-stable || true
