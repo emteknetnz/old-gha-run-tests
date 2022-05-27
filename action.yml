@@ -80,39 +80,38 @@ runs:
         fi
         echo "Passed"
 
-    # - name: Setup chrome and chromedriver
-    #   if: ${{ inputs.endtoend == 'true' }}
-    #   shell: bash
-    #   run: |
-    #     echo "Default versions of google-chrome and chromedriver"
-    #     GCVR=$(google-chrome --version)
-    #     CDVR=$(chromedriver --version)
-    #     echo "$GCVR"
-    #     echo "$CDVR"
-    #     exit 0
-
-    #     # If we end up in situation where we need to reinstall chrome/chromedriver the following may help
-    #     # Note that on ubunut 20.04 and later, these will be installed via a snap and there seems to
-    #     # be permission error with using snap on github actions
-    #     # mkdir: cannot create directory '/run/user/1001': Permission denied
-    #     # Example version number is 101.0.4951.64
-    #     [[ "$GCVR" =~ ([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+ ]]
-    #     GCV="${BASH_REMATCH[1]}"
-    #     [[ "$CDVR" =~ ([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+ ]]
-    #     CDV="${BASH_REMATCH[1]}"
-    #     # Reinstall if a.b.c versions do not match, though allow a different .d version
-    #     # if [ "$GCV" != "$CDV" ]; then
-    #       WGC=$(which google-chrome)
-    #       echo "google-chrome and chromedriver versions do not match, reinstalling"
-    #       sudo apt remove -y --purge google-chrome-stable || true
-    #       sudo apt install -y chromium-browser chromium-chromedriver
-    #       echo "Updated versions of chromium-browser and chromedriver"
-    #       sudo ln -s $(which chromium-browser) "$WGC"
-    #       google-chrome --version
-    #       chromedriver --version
-    #     else
-    #       echo "Default versions match, continuing"
-    #     fi
+    - name: Setup chrome and chromedriver
+      if: ${{ inputs.endtoend == 'true' }}
+      shell: bash
+      run: |
+        echo "Default versions of google-chrome and chromedriver"
+        GCVR=$(google-chrome --version)
+        CDVR=$(chromedriver --version)
+        echo "$GCVR"
+        echo "$CDVR"
+        # Note that on ubuntu 20.04 and later, these will be installed via a snap and there seems to
+        # be permission error with using snap on github actions
+        # mkdir: cannot create directory '/run/user/1001': Permission denied
+        # Example version number is 101.0.4951.64
+        [[ "$GCVR" =~ ([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+ ]]
+        GCV="${BASH_REMATCH[1]}"
+        [[ "$CDVR" =~ ([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+ ]]
+        CDV="${BASH_REMATCH[1]}"
+        # Reinstall if a.b.c versions do not match, though allow a different .d version
+        # if [ "$GCV" != "$CDV" ]; then
+        # TODO UNCOMENT LINE ABOVE AND REMOVE LINE BELOW
+        if [ "1" == "1" ]; then
+          WGC=$(which google-chrome)
+          echo "google-chrome and chromedriver versions do not match, reinstalling"
+          sudo apt remove -y --purge google-chrome-stable || true
+          sudo apt install -y chromium-browser chromium-chromedriver
+          echo "Updated versions of chromium-browser and chromedriver"
+          sudo ln -s $(which chromium-browser) "$WGC"
+          google-chrome --version
+          chromedriver --version
+        else
+          echo "Default versions match, continuing"
+        fi
 
     - name: Run end-to-end tests
       if: ${{ inputs.endtoend == 'true' }}
