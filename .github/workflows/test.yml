@@ -8,8 +8,7 @@ jobs:
       - name: Test
         uses: emteknetnz/gha-tag-release@main
         with:
-          # sha: 70249c7ae7183ca2bd314f7e7f53f06b5e5064b3
-          sha: main
+          sha: 70249c7ae7183ca2bd314f7e7f53f06b5e5064b3
           tag: mytag
           delete_existing: true
           release: false
