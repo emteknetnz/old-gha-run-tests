@@ -12,4 +12,10 @@ jobs:
           tag: mytag
           delete_existing: true
           release: true
-          generate_release_notes: true
+          body: |
+            This is my body
+            It has a few lines
+            
+            And a line break
+            
+            With "quotes" too
