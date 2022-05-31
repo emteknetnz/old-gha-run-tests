@@ -12,7 +12,7 @@ jobs:
           tag: mytag
           delete_existing: true
           release: true
-          body: |
+          body: >
             This is my body
             It has a few lines
             
