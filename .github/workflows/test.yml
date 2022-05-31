@@ -12,8 +12,8 @@ jobs:
           delete_existing: true
           release: false
           body: >
-            This is my body
-            It has a few lines
+            This is my body            
+            It has a few lines...
             
             And a line break
             
