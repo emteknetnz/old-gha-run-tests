@@ -4,8 +4,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
+    permissions: write-all
     steps:
       - name: Test
         uses: emteknetnz/gha-tag-release@main
